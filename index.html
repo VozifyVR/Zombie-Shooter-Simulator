@@ -1,81 +1,91 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Zombie Shooter Simulator</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/TemplateData/style.css">
-    <link rel="icon" href="https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/TemplateData/favicon.ico">
-  </head>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Zombie Shooter Simulator</title>
+<style>
+  :root{--bg:#0d0d0f;--panel:#16161a;--bar:#212127;--a:#ff004f;--b:#ff8a00}
+  html,body{height:100%;margin:0;background:#000;overflow:hidden;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+  #stage{position:fixed;inset:0;background:#0d0d0f;display:flex;align-items:center;justify-content:center;flex-direction:column}
+  #game{position:absolute;inset:0;background:#000}
+  #splash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;background:#0d0d0f;z-index:10;transition:opacity .4s ease}
+  #splash.fade{opacity:0;pointer-events:none}
+  #play{padding:20px 60px;font-size:22px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;border:0;border-radius:12px;color:#fff;background:linear-gradient(90deg,var(--a),var(--b));box-shadow:0 0 35px rgba(255,120,30,.6);cursor:pointer;transition:transform .18s ease, box-shadow .18s ease}
+  #play:hover{transform:scale(1.08);box-shadow:0 0 55px rgba(255,140,40,.9)}
+  #barWrap{width:min(640px,72vw);height:20px;background:#1a1a1f;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.45)}
+  #bar{width:0%;height:100%;background:linear-gradient(90deg,var(--a),var(--b));filter:drop-shadow(0 0 14px rgba(255,120,30,.7));transition:width .18s ease}
+  #pct{margin-top:6px;text-align:center;color:#ddd;font-size:14px;opacity:.9}
+  #msg{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);color:#aaa;font-size:13px;text-align:center;width:100%;opacity:.8}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="game"></div>
 
-  <body style="margin:0;overflow:hidden;background:#000;">
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width="1920" height="1080" tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-      <div id="unity-warning"></div>
-      <div id="unity-footer">
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Zombie Shooter Simulator</div>
-      </div>
-    </div>
+  <div id="splash">
+    <button id="play">CLICK TO PLAY NOW</button>
+    <div id="barWrap"><div id="bar"></div></div>
+    <div id="pct">0%</div>
+    <div id="msg"></div>
+  </div>
+</div>
 
-    <script>
-      const canvas = document.querySelector("#unity-canvas");
-      const loadingBar = document.querySelector("#unity-loading-bar");
-      const progressBarFull = document.querySelector("#unity-progress-bar-full");
+<script>
+  // 👉 CHANGE THIS LINE once Cloudflare Pages deploys
+  // Example: const BASE = "https://zombie-shooter-simulator.pages.dev";
+  const BASE = "https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15";
 
-      function unityShowBanner(msg, type) {
-        const warningBanner = document.querySelector("#unity-warning");
-        const div = document.createElement("div");
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type === "error") div.style = "background: red; padding: 10px;";
-        else {
-          if (type === "warning") div.style = "background: yellow; padding: 10px;";
-          setTimeout(() => {
-            warningBanner.removeChild(div);
-            warningBanner.style.display = warningBanner.children.length ? "block" : "none";
-          }, 5000);
-        }
-        warningBanner.style.display = "block";
-      }
+  const LOADER = BASE + "/1.15.loader.js";
+  const CFG = {
+    dataUrl: BASE + "/1.15.data.unityweb",
+    frameworkUrl: BASE + "/1.15.framework.js.unityweb",
+    codeUrl: BASE + "/1.15.wasm.unityweb",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "VozifyVR",
+    productName: "Zombie Shooter Simulator",
+    productVersion: "1.15"
+  };
 
-      const baseUrl = "https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15";
-      const buildUrl = `${baseUrl}/Build`;
-      const loaderUrl = `${buildUrl}/1.15.loader.js`;
-      const config = {
-        dataUrl: `${buildUrl}/1.15.data.unityweb`,
-        frameworkUrl: `${buildUrl}/1.15.framework.js.unityweb`,
-        codeUrl: `${buildUrl}/1.15.wasm.unityweb`,
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "VozifyVR",
-        productName: "Zombie Shooter Simulator",
-        productVersion: "1.15",
-        showBanner: unityShowBanner,
-      };
+  const play = document.getElementById("play");
+  const splash = document.getElementById("splash");
+  const bar = document.getElementById("bar");
+  const pct = document.getElementById("pct");
+  const msg = document.getElementById("msg");
+  const game = document.getElementById("game");
 
-      canvas.style.background = `url('${buildUrl}/1.15.jpg') center / cover`;
-      loadingBar.style.display = "block";
+  function note(t){msg.textContent=t}
+  function supportsThreads(){return typeof SharedArrayBuffer !== "undefined"}
 
-      const script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = `${100 * progress}%`;
-        }).then((unityInstance) => {
-          loadingBar.style.display = "none";
-          document.querySelector("#unity-fullscreen-button").onclick = () => unityInstance.SetFullscreen(1);
-        }).catch((message) => {
-          console.error("Unity Load Error:", message);
-          alert("Game failed to load. Check console for details.");
-        });
-      };
-      document.body.appendChild(script);
-    </script>
-  </body>
+  play.addEventListener("click", () => {
+    play.disabled = true;
+    note("Loading game...");
+    const s = document.createElement("script");
+    s.src = LOADER;
+    s.onload = () => {
+      createUnityInstance(game, CFG, (p) => {
+        const v = Math.max(0, Math.min(1, p));
+        bar.style.width = (v*100) + "%";
+        pct.textContent = Math.round(v*100) + "%";
+      }).then(() => {
+        splash.classList.add("fade");
+        setTimeout(()=>{splash.remove()}, 500);
+      }).catch((e) => {
+        note("⚠️ Load failed. Check console.");
+        console.error(e);
+        play.disabled = false;
+      });
+    };
+    s.onerror = () => {
+      note("⚠️ Could not load Unity loader.");
+      play.disabled = false;
+    };
+    document.body.appendChild(s);
+
+    if(!supportsThreads()){
+      note("Tip: If it stalls at ~90%, host on Cloudflare Pages with COOP/COEP headers enabled.");
+    }
+  });
+</script>
+</body>
 </html>
