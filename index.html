@@ -4,70 +4,73 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zombie Shooter Simulator</title>
+    <link rel="icon" type="image/jpg" href="https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/1.15.jpg">
+    <script src="https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/ZombieShooter.loader.js"></script>
     <style>
       html, body {
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #111;
         overflow: hidden;
+        background-color: #0d0d0d;
         display: flex;
         justify-content: center;
         align-items: center;
       }
-
       #gameContainer {
         width: 100vw;
         height: 100vh;
-        position: relative;
-        background: #000;
+        background: black;
       }
-
       #playButton {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: linear-gradient(90deg, #00ff99, #0077ff);
+        padding: 24px 60px;
+        background: linear-gradient(90deg, #ff0033, #ff6600);
         color: white;
+        font-size: 26px;
         border: none;
-        padding: 20px 60px;
-        border-radius: 10px;
-        font-size: 24px;
+        border-radius: 12px;
         font-family: 'Arial', sans-serif;
-        letter-spacing: 1px;
-        text-transform: uppercase;
         cursor: pointer;
-        box-shadow: 0 0 20px rgba(0, 255, 180, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 0 25px rgba(255, 80, 0, 0.8);
         transition: all 0.3s ease;
         z-index: 10;
       }
-
       #playButton:hover {
         transform: translate(-50%, -50%) scale(1.1);
-        box-shadow: 0 0 30px rgba(0, 255, 180, 1);
+        box-shadow: 0 0 40px rgba(255, 100, 0, 1);
       }
     </style>
-    <script src="https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/1.15.loader.js"></script>
   </head>
 
   <body>
     <div id="gameContainer"></div>
-    <button id="playButton">Play Now</button>
+    <button id="playButton">Click to Play Now</button>
 
     <script>
-      const button = document.getElementById('playButton');
-      button.addEventListener('click', function() {
-        button.style.display = 'none';
+      const playButton = document.getElementById("playButton");
+
+      playButton.addEventListener("click", function () {
+        playButton.remove();
 
         createUnityInstance(document.querySelector("#gameContainer"), {
-          dataUrl: "https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/1.15.data",
-          frameworkUrl: "https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/1.15.framework.js",
-          codeUrl: "https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/1.15.wasm",
+          dataUrl: "https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/ZombieShooter.data",
+          frameworkUrl: "https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/ZombieShooter.framework.js",
+          codeUrl: "https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/ZombieShooter.wasm",
           streamingAssetsUrl: "StreamingAssets",
           companyName: "VozifyVR",
           productName: "Zombie Shooter Simulator",
-          productVersion: "1.15",
+          productVersion: "1.0"
+        }).then((unityInstance) => {
+          console.log("✅ Game started successfully!");
+        }).catch((err) => {
+          console.error("❌ Failed to load:", err);
+          alert("Game failed to load — check file names and jsDelivr links.");
         });
       });
     </script>
