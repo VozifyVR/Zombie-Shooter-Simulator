@@ -1,77 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-us">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Zombie Shooter Simulator</title>
-    <style>
-      html, body {
-        height: 100%;
-        margin: 0;
-        background: #000;
-        overflow: hidden;
-      }
-      #gameContainer {
-        width: 100%;
-        height: 100%;
-        background: #111;
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
-      #playBtn {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        padding: 22px 60px;
-        font-size: 26px;
-        font-family: sans-serif;
-        border: none;
-        border-radius: 10px;
-        color: #fff;
-        background: linear-gradient(90deg, #ff0040, #ff7b00);
-        cursor: pointer;
-        text-transform: uppercase;
-        box-shadow: 0 0 25px rgba(255, 50, 0, 0.8);
-        transition: all 0.3s ease;
-        z-index: 10;
-      }
-      #playBtn:hover {
-        transform: translate(-50%, -50%) scale(1.1);
-        box-shadow: 0 0 40px rgba(255, 100, 0, 1);
-      }
-    </style>
-    <script src="https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/1.15.loader.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/TemplateData/style.css">
+    <link rel="icon" href="https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/TemplateData/favicon.ico">
   </head>
 
-  <body>
-    <div id="gameContainer"></div>
+  <body style="margin:0;overflow:hidden;background:#000;">
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width="1920" height="1080" tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"></div>
+      <div id="unity-footer">
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Zombie Shooter Simulator</div>
+      </div>
+    </div>
 
     <script>
-      const playBtn = document.createElement("button");
-      playBtn.id = "playBtn";
-      playBtn.textContent = "Click to Play Now";
-      document.body.appendChild(playBtn);
+      const canvas = document.querySelector("#unity-canvas");
+      const loadingBar = document.querySelector("#unity-loading-bar");
+      const progressBarFull = document.querySelector("#unity-progress-bar-full");
 
-      playBtn.onclick = function () {
-        playBtn.remove();
+      function unityShowBanner(msg, type) {
+        const warningBanner = document.querySelector("#unity-warning");
+        const div = document.createElement("div");
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type === "error") div.style = "background: red; padding: 10px;";
+        else {
+          if (type === "warning") div.style = "background: yellow; padding: 10px;";
+          setTimeout(() => {
+            warningBanner.removeChild(div);
+            warningBanner.style.display = warningBanner.children.length ? "block" : "none";
+          }, 5000);
+        }
+        warningBanner.style.display = "block";
+      }
 
-        createUnityInstance(document.querySelector("#gameContainer"), {
-          dataUrl: "https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/1.15.data",
-          frameworkUrl: "https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/1.15.framework.js",
-          codeUrl: "https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15/1.15.wasm",
-          streamingAssetsUrl: "StreamingAssets",
-          companyName: "VozifyVR",
-          productName: "Zombie Shooter Simulator",
-          productVersion: "1.15",
+      const baseUrl = "https://cdn.jsdelivr.net/gh/VozifyVR/Zombie-Shooter-Simulator@v1.15";
+      const buildUrl = `${baseUrl}/Build`;
+      const loaderUrl = `${buildUrl}/1.15.loader.js`;
+      const config = {
+        dataUrl: `${buildUrl}/1.15.data.unityweb`,
+        frameworkUrl: `${buildUrl}/1.15.framework.js.unityweb`,
+        codeUrl: `${buildUrl}/1.15.wasm.unityweb`,
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "VozifyVR",
+        productName: "Zombie Shooter Simulator",
+        productVersion: "1.15",
+        showBanner: unityShowBanner,
+      };
+
+      canvas.style.background = `url('${buildUrl}/1.15.jpg') center / cover`;
+      loadingBar.style.display = "block";
+
+      const script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = `${100 * progress}%`;
         }).then((unityInstance) => {
-          console.log("✅ Game loaded successfully");
-        }).catch((err) => {
-          console.error("❌ Error loading Unity:", err);
-          alert("Failed to load game — check console for details.");
+          loadingBar.style.display = "none";
+          document.querySelector("#unity-fullscreen-button").onclick = () => unityInstance.SetFullscreen(1);
+        }).catch((message) => {
+          console.error("Unity Load Error:", message);
+          alert("Game failed to load. Check console for details.");
         });
       };
+      document.body.appendChild(script);
     </script>
   </body>
 </html>
