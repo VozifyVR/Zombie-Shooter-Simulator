@@ -1,0 +1,12 @@
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+/*.wasm
+  Content-Type: application/wasm
+/*.wasm.unityweb
+  Content-Type: application/wasm
+/*.framework.js.unityweb
+  Content-Type: application/javascript
+/*.data.unityweb
+  Content-Type: application/octet-stream
